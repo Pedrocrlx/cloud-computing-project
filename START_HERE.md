@@ -26,7 +26,8 @@ Each environment represents an independent runtime context and must have its own
 
 For every client and environment, the platform must provide:
 
-- A dedicated Kubernetes cluster (one cluster per environment)
+- A dedicated Kubernetes cluster (one cluster per **client**)
+- The number of environments requested **(each environment should be a namespace)**
 - A publicly accessible Odoo application
 - Secure access over HTTPS
 - Full isolation between:
@@ -42,6 +43,7 @@ You must implement a single Terraform project that:
 - Treats clients and environments as data, not hardcoded logic
 - Avoids duplication of Terraform resources
 - Allows adding new clients or environments by changing variables only
+- One workspace per client **(__due to terraform provider block limitation__)** [updated on 21/01/2026]
 
 ➡️ No Terraform resource blocks should need modification when clients or environments change.
 
@@ -148,7 +150,7 @@ The final submission must include:
   - Makefiles
   - Shell scripts
 
-- All infrastructure must be created using a single terraform apply.
+> All infrastructure must be created using a single terraform apply per each client.
 
 # Evaluation Criteria (20 Points)
 
