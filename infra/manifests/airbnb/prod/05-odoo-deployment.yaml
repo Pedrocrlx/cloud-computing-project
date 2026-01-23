@@ -20,7 +20,7 @@ spec:
         - containerPort: 8069
         env:
         - name: HOST
-          value: "postgres-svc"
+          value: "postgres-svc.airbnb-prod.svc.cluster.local"
         - name: USER
           valueFrom:
             secretKeyRef:

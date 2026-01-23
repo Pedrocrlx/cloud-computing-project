@@ -21,4 +21,4 @@ minikube -p airbnb ip - get on that specific profile the IP and then:
 
 sudo nano /etc/hosts - minikube ip  odoo.dev.airbnb.local odoo.prod.airbnb.local
 
-curl -k https://odoo.dev.airbnb.local
+curl -kI https://odoo.dev.airbnb.local
