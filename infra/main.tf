@@ -33,17 +33,28 @@ resource "tls_self_signed_cert" "cert" {
   ]
 }
 
+# Gera uma password aleatória (uma por ambiente ou uma por cliente, aqui faço por ambiente)
+resource "random_password" "db_pass" {
+  for_each = toset(local.client_envs)
+  length   = 16
+  special  = false # Evita caracteres estranhos que partam a URL de conexão
+}
+
 resource "local_file" "k8s_manifests" {
   for_each = local.manifests_map
 
   filename = "${path.module}/manifests/${each.value.client}/${each.value.env}/${each.value.tpl_name}.yaml"
-  
+   
   content = templatefile("${path.module}/templates/${each.value.tpl_name}.yaml", {
     namespace = each.value.namespace
     domain    = each.value.domain
     
-    # --- NOVO: Passamos os certificados gerados (Convertidos para Base64) ---
-    # Usamos o `try` para evitar erro nos templates que não usam certs (como o namespace)
+    # --- ATUALIZAÇÃO AQUI ---
+    # Passamos a password gerada pelo Terraform
+    # Se o ficheiro não for o segredo, passamos string vazia (não faz mal)
+    db_password_b64 = base64encode(lookup(random_password.db_pass, each.value.env, { result = "odoo" }).result)
+
+    # Certificados
     cert_b64  = base64encode(lookup(tls_self_signed_cert.cert, each.value.env, { cert_pem = "" }).cert_pem)
     key_b64   = base64encode(lookup(tls_private_key.pk, each.value.env, { private_key_pem = "" }).private_key_pem)
   })
@@ -56,6 +67,6 @@ resource "null_resource" "apply_manifests" {
   depends_on = [minikube_cluster.main, local_file.k8s_manifests]
 
   provisioner "local-exec" {
-    command = "minikube -p ${minikube_cluster.main.cluster_name} kubectl -- apply -R -f ${path.module}/manifests/${local.current_client}/"
+    command = "sleep 60 && minikube -p ${minikube_cluster.main.cluster_name} kubectl -- apply -R -f ${path.module}/manifests/${local.current_client}/"
   }
 }

@@ -8,4 +8,3 @@ variable "clients" {
     #mcdonalds = ["dev", "qa", "beta", "prod"]
   }
 }
-
