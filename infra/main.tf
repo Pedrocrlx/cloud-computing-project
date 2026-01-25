@@ -33,11 +33,11 @@ resource "tls_self_signed_cert" "cert" {
   ]
 }
 
-# Gera uma password aleatória (uma por ambiente ou uma por cliente, aqui faço por ambiente)
+# Generate random passwords for DB (1 per environment, e.g., Prod, Dev...)
 resource "random_password" "db_pass" {
   for_each = toset(local.client_envs)
   length   = 16
-  special  = false # Evita caracteres estranhos que partam a URL de conexão
+  special  = false # No special characters for simplicity
 }
 
 resource "local_file" "k8s_manifests" {
@@ -48,13 +48,11 @@ resource "local_file" "k8s_manifests" {
   content = templatefile("${path.module}/templates/${each.value.tpl_name}.yaml", {
     namespace = each.value.namespace
     domain    = each.value.domain
-    
-    # --- ATUALIZAÇÃO AQUI ---
-    # Passamos a password gerada pelo Terraform
-    # Se o ficheiro não for o segredo, passamos string vazia (não faz mal)
+  
+    # If the template requires a DB password, provide it in base64
     db_password_b64 = base64encode(lookup(random_password.db_pass, each.value.env, { result = "odoo" }).result)
 
-    # Certificados
+    # Certificate and Key in base64
     cert_b64  = base64encode(lookup(tls_self_signed_cert.cert, each.value.env, { cert_pem = "" }).cert_pem)
     key_b64   = base64encode(lookup(tls_private_key.pk, each.value.env, { private_key_pem = "" }).private_key_pem)
   })

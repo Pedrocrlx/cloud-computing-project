@@ -1,39 +1,41 @@
-# Makefile
-# Extrai a lista de clientes do script de config para iterar no make
+# Makefile for managing Terraform infrastructure and Minikube clusters for multiple clients
 CLIENTS := $(shell grep 'CLIENTS_MAP\[' scripts/env_config.sh | cut -d'"' -f2)
 
-.PHONY: all clean up hosts init validate test
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
-all: clean up hosts init validate
+all: clean up hosts init validate ## Run all steps: clean, up, hosts, init, validate
 
-clean:
-	@echo "🧹 A limpar infraestrutura..."
+clean: ## Clean previous Terraform state and Minikube clusters
+	@echo "Cleaning up previous Terraform state and Minikube clusters..."
 	rm -rf .terraform terraform.tfstate.d .terraform.lock.hcl
 	minikube delete --all
-	@echo "✨ Limpeza concluída."
+	@echo "Cleaning done."
 
-up:
-	@echo "🚀 A Provisionar Clusters..."
+up: ## Initialize and apply Terraform configurations for all clients
+	@echo "Initializing and applying Terraform configurations for all clients..."
 	terraform init
 	@for client in $(CLIENTS); do \
 		echo "------------------------------------"; \
-		echo "🏗️  CLIENTE: $$client"; \
+		echo "🏗️  CLIENT: $$client"; \
 		terraform workspace select $$client || terraform workspace new $$client; \
 		terraform apply -auto-approve; \
 	done
-	@echo "✅ Terraform finalizado."
+	@echo "All clients have been set up."
 
-hosts:
+hosts: ## Update /etc/hosts with client-specific domain mappings
+	@echo "Updating /etc/hosts with client-specific domain mappings..."
 	@chmod +x scripts/update_hosts.sh
 	@./scripts/update_hosts.sh
 
-init:
+init: ## Initialize Minikube clusters and deploy Odoo instances for all clients
+	@echo "Initializing Minikube clusters and deploying Odoo instances for all clients..."
 	@chmod +x scripts/init_odoo.sh
 	@./scripts/init_odoo.sh
 
-validate:
-	@echo "🧪 A testar endpoints finais..."
-	@# Script simples embutido para validar
+validate: ## Validate the deployment by testing final endpoints
+	@echo "Testing final endpoints..."
+	@# Load the CLIENTS_MAP from the env_config.sh script
 	@bash -c 'source scripts/env_config.sh; \
 	for client in "$${!CLIENTS_MAP[@]}"; do \
 		for env in $${CLIENTS_MAP[$$client]}; do \
