@@ -45,6 +45,10 @@ Database credentials are handled securely. The Terraform logic ensures that sens
 - Kubectl
 - Make
 
+```bash
+cd infra
+```
+
 ### Installation & Deployment
 
 The entire lifecycle of the project is managed via the Makefile to ensure consistency.
