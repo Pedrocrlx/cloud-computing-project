@@ -24,6 +24,8 @@ Rather than hardcoding Kubernetes YAML files for every service, the project uses
 
 The project orchestrates multiple Minikube Profiles simultaneously to simulate distinct physical clusters or regions. This ensures that a resource spike in one client does not affect the stability of another (Cluster Isolation).
 
+<img width="863" height="416" alt="Screenshot 2026-02-07 173527" src="https://github.com/user-attachments/assets/97b33e72-7d99-474d-974e-9b88cc8e96d7" />
+
 ### 3. Namespace Isolation
 
 Within each cluster, environments (Dev, QA, Prod) are separated by Kubernetes Namespaces. This provides:
@@ -99,5 +101,6 @@ The Ingress Controller is configured to route traffic based on host headers.
 > **Note:** Local DNS resolution is handled via `/etc/hosts` injection performed by Minikube ingress-dns.
 
 ## Conclusion
+
 
 This project moves beyond simple containerization. It showcases a Platform Engineering approach, where the infrastructure is treated as a product—flexible, automated, and ready to scale for any number of clients with minimal operational overhead.
